@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>다마고치 힐링 카페 스터디 룸</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #0c0f17;
+            color: #f8fafc;
+        }
+        .pixel-font {
+            font-family: 'VT323', monospace;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        #canvasContainer {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: relative;
+        }
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+            display: block;
+            outline: none;
+            cursor: grab;
+        }
+        #canvas3d:active {
+            cursor: grabbing;
+        }
+        /* Round Warm Yellow Tamagotchi Device Body Frame */
+        .tamagotchi-shell {
+            background: linear-gradient(145deg, #fde047, #eab308, #ca8a04);
+            box-shadow: 0 24px 60px rgba(234, 179, 8, 0.35), inset 0 6px 12px rgba(255, 255, 255, 0.6), inset 0 -8px 16px rgba(161, 98, 7, 0.6);
+            border-radius: 64px;
+        }
+        .screen-bezel {
+            background: #18181b;
+            box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.9), 0 3px 6px rgba(255, 255, 255, 0.3);
+            border-radius: 36px;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(234, 179, 8, 0.5);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar select-none overflow-x-hidden">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-amber-900/40 bg-slate-950/90 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-amber-500/30">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg leading-tight text-amber-100 flex items-center gap-2">
+                        노란 다마고치 힐링 카페
+                        <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono">YELLOW EDITION</span>
+                    </h1>
+                    <p class="text-xs text-amber-200/60">일자 카운터와 둥근 테이블에서 쉬어가는 귀여운 동물 친구들</p>
+                </div>
+            </div>
+            
+            <!-- View Mode Switcher -->
+            <div class="flex items-center gap-2">
+                <button onclick="switchTab('study')" id="tabStudy" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-mug-hot"></i> <span class="hidden sm:inline">다마고치 카페</span>
+                </button>
+                <button onclick="switchTab('todoTab')" id="tabTodo" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check text-emerald-400"></i> <span class="hidden sm:inline">할 일 관리</span>
+                </button>
+                <button onclick="switchTab('tools')" id="tabTools" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-compass"></i> <span class="hidden sm:inline">추천 웹앱 모음</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN VIEW 1: VIRTUAL CAFE 3D STUDY ROOM WITH TAMAGOTCHI FRAME -->
+    <main id="studyView" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col gap-4">
+        
+        <!-- Round Yellow Tamagotchi Handheld Game Console Wrapper -->
+        <div class="tamagotchi-shell p-5 sm:p-8 relative w-full flex flex-col items-center border-4 border-amber-300/50 shadow-2xl">
+            
+            <!-- Top Branding on Console -->
+            <div class="flex items-center justify-between w-full max-w-4xl px-4 mb-3 text-amber-950 font-black tracking-wider text-xs sm:text-sm">
+                <span class="flex items-center gap-2 font-mono drop-shadow"><i class="fa-solid fa-heart text-rose-600 animate-pulse"></i> YELLOW TAMAGOTCHI CAFE</span>
+                <span class="pixel-font text-xl text-amber-950 font-bold">MINI ROOM V2</span>
+            </div>
+
+            <!-- Screen Bezel Display Box -->
+            <div class="screen-bezel p-3 sm:p-5 w-full max-w-4xl rounded-[32px] border-4 border-amber-900/80 relative">
+                <!-- 3D Canvas Container -->
+                <div class="relative w-full h-[420px] sm:h-[500px] rounded-2xl overflow-hidden bg-slate-950">
+                    <div id="canvasContainer" class="w-full h-full"></div>
+
+                    <!-- Overlay Help & Status -->
+                    <div class="absolute top-3 left-3 pointer-events-none z-10 flex flex-col gap-1.5">
+                        <span class="bg-slate-950/85 text-amber-200 text-xs px-3 py-1 rounded-full border border-amber-500/30 backdrop-blur-md flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-pointer text-amber-400"></i> 마우스/터치 드래그로 카페 시점을 회전해 보세요
+                        </span>
+                        <span class="bg-emerald-950/85 text-emerald-300 text-[11px] px-3 py-1 rounded-full border border-emerald-500/30 backdrop-blur-md flex items-center gap-1.5 w-max">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            일자 바 테이블 & 둥근 좌석 배치
+                        </span>
+                    </div>
+
+                    <!-- Speech Bubble Overlay -->
+                    <div id="speechBubble" class="absolute hidden bg-amber-100 text-slate-900 px-4 py-2 rounded-2xl shadow-2xl border-2 border-amber-400 text-xs font-bold transition-all duration-300 pointer-events-none z-20 transform -translate-x-1/2 -translate-y-full">
+                        <span id="speechText">일자 책상에 앉아서 커피 한 잔 어때? ☕</span>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-amber-100"></div>
+                    </div>
+
+                    <!-- View Reset Button inside screen -->
+                    <div class="absolute bottom-3 right-3 z-10">
+                        <button onclick="resetCamera()" class="bg-slate-900/80 hover:bg-slate-800 text-slate-200 px-3 py-1.5 rounded-xl text-xs border border-slate-700 transition" title="시점 리셋">
+                            <i class="fa-solid fa-video"></i> 시점 원위치
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console Physical Buttons (A, B, C Buttons for Tamagotchi Interaction) -->
+            <div class="flex items-center justify-center gap-6 sm:gap-12 mt-5 sm:mt-6">
+                <!-- Button A -->
+                <button onclick="cheerFriends()" class="flex flex-col items-center group">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-rose-500 hover:bg-rose-400 active:scale-90 transition shadow-lg shadow-rose-600/40 border-4 border-amber-200 flex items-center justify-center text-white text-xl sm:text-2xl font-black">
+                        A
+                    </div>
+                    <span class="text-[12px] font-black text-amber-950 mt-1.5 group-hover:text-rose-900">응원 보내기</span>
+                </button>
+
+                <!-- Button B -->
+                <button onclick="toggleLofi()" class="flex flex-col items-center group">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-sky-500 hover:bg-sky-400 active:scale-90 transition shadow-lg shadow-sky-600/40 border-4 border-amber-200 flex items-center justify-center text-white text-xl sm:text-2xl font-black">
+                        B
+                    </div>
+                    <span class="text-[12px] font-black text-amber-950 mt-1.5 group-hover:text-sky-900">음악 ON/OFF</span>
+                </button>
+
+                <!-- Button C -->
+                <button onclick="changeMoodLight()" class="flex flex-col items-center group">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500 hover:bg-emerald-400 active:scale-90 transition shadow-lg shadow-emerald-600/40 border-4 border-amber-200 flex items-center justify-center text-white text-xl sm:text-2xl font-black">
+                        C
+                    </div>
+                    <span class="text-[12px] font-black text-amber-950 mt-1.5 group-hover:text-emerald-900">조명 변경</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Audio & Pomodoro Control Panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <!-- Sound & Ambience Mixer (5 Cols) -->
+            <div class="lg:col-span-5 glass-panel rounded-2xl p-5 border-rose-500/20 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-rose-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-music"></i> 잔잔한 카페 소음 & BGM</span>
+                        <span class="text-[10px] text-rose-300/70">웹 오디오 Synth</span>
+                    </h3>
+
+                    <div class="space-y-3">
+                        <!-- Lo-Fi Music Simulator -->
+                        <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-xs text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-headphones text-rose-400 w-4"></i> 감성 Lo-Fi 멜로디
+                            </span>
+                            <button onclick="toggleLofi()" id="lofiBtn" class="px-3 py-1 rounded-lg text-xs font-bold bg-rose-600 text-white hover:bg-rose-500 transition">
+                                <i class="fa-solid fa-play"></i> 재생
+                            </button>
+                        </div>
+
+                        <!-- Cafe Noise Slider -->
+                        <div class="flex items-center justify-between px-1">
+                            <span class="text-xs text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-mug-saucer text-amber-500 w-4"></i> 도심 카페 웅성임
+                            </span>
+                            <input type="range" id="cafeNoiseSlider" min="0" max="100" value="30" oninput="setCafeNoise(this.value)" class="w-28 accent-rose-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Rain Sound Slider -->
+                        <div class="flex items-center justify-between px-1">
+                            <span class="text-xs text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-cloud-rain text-blue-400 w-4"></i> 창밖 잔잔한 빗소리
+                            </span>
+                            <input type="range" id="rainNoiseSlider" min="0" max="100" value="0" oninput="setRainNoise(this.value)" class="w-28 accent-rose-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                    <span>다마고치 카페 동시 접속</span>
+                    <span class="text-rose-300 font-mono font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-users text-emerald-400"></i> <span id="onlineCounter">142</span>명 함께 쉬는 중
+                    </span>
+                </div>
+            </div>
+
+            <!-- Pomodoro Timer Block (7 Cols) -->
+            <div class="lg:col-span-7 glass-panel rounded-2xl p-5 border-rose-500/20 flex flex-col items-center justify-between">
+                <div class="w-full flex items-center justify-between mb-2">
+                    <h3 class="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch"></i> 카페 뽀모도로 타이머
+                    </h3>
+                    <div class="flex gap-1.5">
+                        <button onclick="setTimerMode('work')" id="modeWork" class="px-3 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-slate-950">🔥 몰입 (25분)</button>
+                        <button onclick="setTimerMode('shortBreak')" id="modeShort" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300">☕ 휴식 (5분)</button>
+                    </div>
+                </div>
+
+                <div class="my-2 text-center">
+                    <span id="timerDisplay" class="font-mono text-5xl sm:text-6xl font-black text-rose-100 tracking-tight drop-shadow-md">25:00</span>
+                    <p id="timerStatus" class="text-xs text-rose-200/70 mt-1">다마고치 속 친구들과 편안하게 집중을 시작하세요.</p>
+                </div>
+
+                <div class="flex items-center gap-3 w-full justify-center">
+                    <button onclick="toggleTimer()" id="startBtn" class="px-6 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold text-xs shadow-md transition active:scale-95 flex items-center gap-1.5">
+                        <i class="fa-solid fa-play"></i> 타이머 시작
+                    </button>
+                    <button onclick="resetTimer()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs" title="리셋">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MAIN VIEW 2: FULL TODO LIST & TASK MANAGEMENT CENTER -->
+    <main id="todoView" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 border-slate-700/60 shadow-2xl">
+            <!-- Header section -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-emerald-400"></i> 투두리스트 & 일과 관리 센터
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">오늘 완료할 과제와 목표를 체계적으로 작성하고 달성해보세요.</p>
+                </div>
+                <!-- Progress summary badge -->
+                <div class="bg-slate-900/90 border border-slate-800 px-5 py-3 rounded-2xl flex items-center gap-4">
+                    <div>
+                        <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">전체 진척도</div>
+                        <div id="fullProgressText" class="text-lg font-bold text-emerald-400">0% 달성</div>
+                    </div>
+                    <div class="w-24 bg-slate-800 h-3 rounded-full overflow-hidden">
+                        <div id="fullProgressBar" class="bg-gradient-to-r from-emerald-500 to-amber-500 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Input Form -->
+            <form onsubmit="addFullTask(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-8 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                <div class="md:col-span-5">
+                    <input type="text" id="fullTaskTitle" placeholder="어떤 일을 하실 건가요? (예: 파이썬 강의 2강 수강)" required
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="md:col-span-3">
+                    <select id="fullTaskCategory" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-500">
+                        <option value="📚 학업/공부">📚 학업 / 공부</option>
+                        <option value="💼 업무/프로젝트">💼 업무 / 프로젝트</option>
+                        <option value="🌿 일상/자기계발">🌿 일상 / 자기계발</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <select id="fullTaskPriority" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-500">
+                        <option value="high">🔴 높은 우선순위</option>
+                        <option value="medium" selected>🟡 보통 우선순위</option>
+                        <option value="low">🟢 낮음</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit" class="w-full h-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs py-2.5 transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30">
+                        <i class="fa-solid fa-plus"></i> 할 일 등록
+                    </button>
+                </div>
+            </form>
+
+            <!-- Filter Tabs & Clear Button -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex gap-2">
+                    <button onclick="filterTasks('all')" id="btnFilterAll" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white">전체</button>
+                    <button onclick="filterTasks('active')" id="btnFilterActive" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">진행 중</button>
+                    <button onclick="filterTasks('completed')" id="btnFilterCompleted" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">완료됨</button>
+                </div>
+                <button onclick="clearCompletedTasks()" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1">
+                    <i class="fa-solid fa-trash-can"></i> 완료 항목 삭제
+                </button>
+            </div>
+
+            <!-- Task Item Cards Container -->
+            <div id="fullTaskList" class="space-y-3 min-h-[260px]">
+                <!-- Dynamic Injection -->
+            </div>
+        </div>
+    </main>
+
+    <!-- MAIN VIEW 3: USEFUL WEB APPS DIRECTORY -->
+    <main id="toolsView" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 border-amber-500/20 shadow-2xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-amber-200 flex items-center gap-2">
+                        <i class="fa-solid fa-compass text-amber-400"></i> 유용한 웹 애플리케이션 모음
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">삶을 쉽고 유용하게 만들어주는 검증된 무료 웹앱 사이트들입니다.</p>
+                </div>
+            </div>
+
+            <!-- Directory Grid -->
+            <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic Injection -->
+            </div>
+        </div>
+    </main>
+
+    <!-- 3D ANIMAL CROSSING CAFE ENGINE & INTERACTION LOGIC -->
+    <script>
+        // ----------------------------------------------------
+        // Global Data & Web Apps List
+        // ----------------------------------------------------
+        const webApps = [
+            { name: "Notion", desc: "메모, 프로젝트, 일정을 하나로 통합 관리하는 워크스페이스", category: "생산성", url: "https://www.notion.so", icon: "fa-solid fa-file-pen", color: "from-blue-500 to-indigo-600" },
+            { name: "DeepL", desc: "자연스럽고 문맥을 파악하는 최고 수준의 AI 번역기", category: "생산성", url: "https://www.deepl.com", icon: "fa-solid fa-language", color: "from-sky-500 to-blue-600" },
+            { name: "Excalidraw", desc: "브라우저에서 바로 그리는 감성 손그림 화이트보드", category: "디자인", url: "https://excalidraw.com", icon: "fa-solid fa-pen-ruler", color: "from-violet-500 to-purple-600" },
+            { name: "Photopea", desc: "설치 없는 브라우저 무료 포토샵 PSD 편집기", category: "디자인", url: "https://www.photopea.com", icon: "fa-solid fa-image", color: "from-teal-500 to-emerald-600" },
+            { name: "Canva", desc: "템플릿으로 빠르게 완성하는 카드뉴스 및 디자인 툴", category: "디자인", url: "https://www.canva.com", icon: "fa-solid fa-palette", color: "from-pink-500 to-rose-600" },
+            { name: "LifeAt Virtual Space", desc: "백색소음, 배경영상, 뽀모도로 타이머 몰입 공간", category: "힐링/집중", url: "https://lifeat.io", icon: "fa-solid fa-coffee", color: "from-amber-500 to-orange-600" },
+            { name: "Goblin.tools", desc: "막막한 할 일을 AI가 세부적으로 분할해주는 도구", category: "생산성", url: "https://goblin.tools", icon: "fa-solid fa-wand-magic-sparkles", color: "from-purple-500 to-pink-600" },
+            { name: "TinyWow", desc: "PDF 변환, 누끼 제거 등 100가지 이상 무료 스마트 변환기", category: "유틸리티", url: "https://tinywow.com", icon: "fa-solid fa-screwdriver-wrench", color: "from-emerald-500 to-teal-600" },
+            { name: "Ray.so", desc: "소스 코드를 아름다운 그래픽 스크린샷 이미지로 만듦", category: "유틸리티", url: "https://ray.so", icon: "fa-solid fa-code", color: "from-cyan-500 to-blue-600" }
+        ];
+
+        let tasks = JSON.parse(localStorage.getItem('tamagotchi_tasks') || '[]');
+        let taskFilter = 'all';
+
+        // ----------------------------------------------------
+        // 1. THREE.js 3D CAFE WITH ENHANCED CUTE ANIMAL CHARACTERS
+        // ----------------------------------------------------
+        let scene, camera, renderer, animals = [];
+        let mainLight;
+        let isMouseDown = false, mouseX = 0, mouseY = 0;
+        let targetRotationY = 0.25, targetRotationX = 0.32;
+        let currentRotationY = 0.25, currentRotationX = 0.32;
+        let container;
+
+        function init3D() {
+            container = document.getElementById('canvasContainer');
+            if(!container) return;
+            
+            // Clear existing canvas if any
+            container.innerHTML = '';
+
+            const width = container.clientWidth || 800;
+            const height = container.clientHeight || 500;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x271a10); // Warm cozy background
+            scene.fog = new THREE.FogExp2(0x271a10, 0.02);
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            camera.position.set(0, 5.5, 11);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Bright Ambient & Directional Lighting for maximum character visibility
+            const ambientLight = new THREE.AmbientLight(0xffedd5, 1.4);
+            scene.add(ambientLight);
+
+            mainLight = new THREE.PointLight(0xffedd5, 3.0, 25);
+            mainLight.position.set(0, 7, 2);
+            mainLight.castShadow = true;
+            scene.add(mainLight);
+
+            const frontLight = new THREE.DirectionalLight(0xfff7ed, 1.3);
+            frontLight.position.set(0, 5, 10);
+            scene.add(frontLight);
+
+            // Build Cozy Cafe Layout & Cute Distinct Animal Characters
+            buildCafeRoom();
+            createCuteAnimalCharacters();
+
+            // Event Listeners for 3D Camera Controls
+            const dom = renderer.domElement;
+            dom.addEventListener('mousedown', (e) => { isMouseDown = true; mouseX = e.clientX; mouseY = e.clientY; });
+            window.addEventListener('mouseup', () => { isMouseDown = false; });
+            dom.addEventListener('mousemove', (e) => {
+                if (!isMouseDown) return;
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+                targetRotationY += deltaX * 0.005;
+                targetRotationX = Math.max(0.1, Math.min(0.65, targetRotationX + deltaY * 0.005));
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            // Touch Support
+            dom.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isMouseDown = true;
+                    mouseX = e.touches[0].clientX;
+                    mouseY = e.touches[0].clientY;
+                }
+            });
+            dom.addEventListener('touchend', () => { isMouseDown = false; });
+            dom.addEventListener('touchmove', (e) => {
+                if (!isMouseDown || e.touches.length !== 1) return;
+                const deltaX = e.touches[0].clientX - mouseX;
+                const deltaY = e.touches[0].clientY - mouseY;
+                targetRotationY += deltaX * 0.005;
+                targetRotationX = Math.max(0.1, Math.min(0.65, targetRotationX + deltaY * 0.005));
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+            });
+
+            window.addEventListener('resize', onWindowResize);
+            animate3D();
+        }
+
+        function onWindowResize() {
+            if (!container || !renderer || !camera) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // Build Mixed Layout Cafe (Linear Bar Desk + Round Small Tables)
+        function buildCafeRoom() {
+            // Warm Wood Floor
+            const floorGeo = new THREE.BoxGeometry(14, 0.4, 12);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.3 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.position.y = -0.2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Cute Pastel Green Rug
+            const rugMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.8 });
+            const rug = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.05, 32), rugMat);
+            rug.position.set(0, 0.03, 0.5);
+            rug.receiveShadow = true;
+            scene.add(rug);
+
+            // Back & Side Walls
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.7 });
+            const backWall = new THREE.Mesh(new THREE.BoxGeometry(14, 7, 0.4), wallMat);
+            backWall.position.set(0, 3.3, -5.8);
+            scene.add(backWall);
+
+            // 1. LONG LINEAR BAR COUNTER (창가/벽면의 길쭉한 일자 책상)
+            const linearDeskMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.3 });
+            const linearDesk = new THREE.Mesh(new THREE.BoxGeometry(7.0, 1.2, 1.4), linearDeskMat);
+            linearDesk.position.set(-2.0, 0.6, -3.8);
+            linearDesk.castShadow = true;
+            linearDesk.receiveShadow = true;
+            scene.add(linearDesk);
+
+            // 2. ROUND TABLES (중앙 및 오른쪽 원형 테이블들)
+            const roundTableMat = new THREE.MeshStandardMaterial({ color: 0xb45309 });
+            
+            // Round Table 1 (Middle Left)
+            const roundTable1 = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.5, 32), roundTableMat);
+            roundTable1.position.set(-2.5, 0.25, 2.0);
+            roundTable1.castShadow = true;
+            scene.add(roundTable1);
+
+            // Round Table 2 (Right Front)
+            const roundTable2 = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.5, 32), roundTableMat);
+            roundTable2.position.set(3.0, 0.25, 2.5);
+            roundTable2.castShadow = true;
+            scene.add(roundTable2);
+
+            // Cafe Counter Bar
+            const cafeBarMat = new THREE.MeshStandardMaterial({ color: 0x3b0764 });
+            const cafeBar = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.3, 4.0), cafeBarMat);
+            cafeBar.position.set(4.5, 0.65, -3.2);
+            scene.add(cafeBar);
+        }
+
+        // Helper to add cute eyes & rosy cheeks to animals
+        function addCuteFace(headMesh, eyeDistance = 0.16, eyeHeight = 0.05, eyeDepth = 0.36) {
+            const eyeGeo = new THREE.SphereGeometry(0.045, 8, 8);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+
+            const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+            eyeL.position.set(-eyeDistance, eyeHeight, eyeDepth);
+            const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+            eyeR.position.set(eyeDistance, eyeHeight, eyeDepth);
+
+            headMesh.add(eyeL);
+            headMesh.add(eyeR);
+
+            // Rosy Cheeks
+            const cheekGeo = new THREE.SphereGeometry(0.055, 8, 8);
+            const cheekMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+
+            const cheekL = new THREE.Mesh(cheekGeo, cheekMat);
+            cheekL.position.set(-eyeDistance - 0.08, eyeHeight - 0.06, eyeDepth - 0.03);
+            const cheekR = new THREE.Mesh(cheekGeo, cheekMat);
+            cheekR.position.set(eyeDistance + 0.08, eyeHeight - 0.06, eyeDepth - 0.03);
+
+            headMesh.add(cheekL);
+            headMesh.add(cheekR);
+        }
+
+        // Create Highly Distinct & Large Cute Animal Characters
+        function createCuteAnimalCharacters() {
+            animals = [];
+
+            // 1. BEAR (일자 책상 좌측: 갈색 곰돌이 + 노란 멜빵바지 + 노트북)
+            const bearGroup = new THREE.Group();
+            bearGroup.position.set(-4.2, 1.1, -2.6);
+
+            const bearMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.5 });
+            const clothesMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
+
+            const bearBody = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 16), clothesMat);
+            bearGroup.add(bearBody);
+
+            const bearHead = new THREE.Mesh(new THREE.SphereGeometry(0.65, 16, 16), bearMat);
+            bearHead.position.set(0, 0.95, 0);
+            bearGroup.add(bearHead);
+
+            // Round Ears
+            const earGeo = new THREE.SphereGeometry(0.22, 16, 16);
+            const earL = new THREE.Mesh(earGeo, bearMat);
+            earL.position.set(-0.45, 1.45, 0);
+            const earR = earL.clone();
+            earR.position.set(0.45, 1.45, 0);
+            bearGroup.add(earL);
+            bearGroup.add(earR);
+
+            // Face
+            addCuteFace(bearHead, 0.2, 0.08, 0.55);
+
+            // Laptop on linear table
+            const laptop = new THREE.Mesh(
+                new THREE.BoxGeometry(0.7, 0.05, 0.5),
+                new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.8 })
+            );
+            laptop.position.set(0, 0.15, -1.0);
+            bearGroup.add(laptop);
+
+            scene.add(bearGroup);
+            animals.push({ group: bearGroup, head: bearHead, type: 'bear', name: '곰곰이 (일자 책상 코딩 중)' });
+
+            // 2. RABBIT (일자 책상 우측: 분홍 토끼 + 긴 귀 + 찻잔)
+            const rabbitGroup = new THREE.Group();
+            rabbitGroup.position.set(-1.0, 1.1, -2.6);
+
+            const rabbitMat = new THREE.MeshStandardMaterial({ color: 0xfbcfe8, roughness: 0.4 });
+            const rabbitBody = new THREE.Mesh(new THREE.SphereGeometry(0.68, 16, 16), new THREE.MeshStandardMaterial({ color: 0xf43f5e }));
+            rabbitGroup.add(rabbitBody);
+
+            const rabbitHead = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), rabbitMat);
+            rabbitHead.position.set(0, 0.9, 0);
+            rabbitGroup.add(rabbitHead);
+
+            // Tall Rabbit Ears
+            const rEarGeo = new THREE.CylinderGeometry(0.08, 0.14, 0.9);
+            const rEarL = new THREE.Mesh(rEarGeo, rabbitMat);
+            rEarL.position.set(-0.25, 1.7, 0);
+            rEarL.rotation.z = -0.2;
+            const rEarR = new THREE.Mesh(rEarGeo, rabbitMat);
+            rEarR.position.set(0.25, 1.7, 0);
+            rEarR.rotation.z = 0.2;
+            rabbitGroup.add(rEarL);
+            rabbitGroup.add(rEarR);
+
+            // Face
+            addCuteFace(rabbitHead, 0.18, 0.06, 0.52);
+
+            // Coffee Cup on linear table
+            const cup = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.18, 0.14, 0.35),
+                new THREE.MeshStandardMaterial({ color: 0xffffff })
+            );
+            cup.position.set(0, 0.15, -0.9);
+            rabbitGroup.add(cup);
+
+            scene.add(rabbitGroup);
+            animals.push({ group: rabbitGroup, head: rabbitHead, type: 'rabbit', name: '토토 (일자 책상 커피)' });
+
+            // 3. CAT (원형 테이블 1: 주황 삼색 고양이 + 책 읽기)
+            const catGroup = new THREE.Group();
+            catGroup.position.set(-3.7, 0.9, 2.0);
+
+            const catMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.5 });
+            const catBody = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 16), new THREE.MeshStandardMaterial({ color: 0x06b6d4 }));
+            catGroup.add(catBody);
+
+            const catHead = new THREE.Mesh(new THREE.SphereGeometry(0.58, 16, 16), catMat);
+            catHead.position.set(0, 0.85, 0);
+            catGroup.add(catHead);
+
+            // Pointed Triangular Cat Ears
+            const cEarGeo = new THREE.ConeGeometry(0.18, 0.35, 4);
+            const cEarL = new THREE.Mesh(cEarGeo, catMat);
+            cEarL.position.set(-0.28, 1.35, 0);
+            const cEarR = cEarL.clone();
+            cEarR.position.set(0.28, 1.35, 0);
+            catGroup.add(cEarL);
+            catGroup.add(cEarR);
+
+            // Face
+            addCuteFace(catHead, 0.18, 0.05, 0.5);
+
+            scene.add(catGroup);
+            animals.push({ group: catGroup, head: catHead, type: 'cat', name: '야옹이 (원형 테이블 독서)' });
+
+            // 4. PENGUIN (원형 테이블 2: 귀여운 아기 펭귄)
+            const penGroup = new THREE.Group();
+            penGroup.position.set(3.0, 0.95, 2.5);
+
+            const penMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+            const penBellyMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+            const penBody = new THREE.Mesh(new THREE.SphereGeometry(0.68, 16, 16), penMat);
+            penGroup.add(penBody);
+
+            // White Belly
+            const belly = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), penBellyMat);
+            belly.position.set(0, 0.0, 0.25);
+            penGroup.add(belly);
+
+            const penHead = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 16), penMat);
+            penHead.position.set(0, 0.8, 0);
+            penGroup.add(penHead);
+
+            // Yellow Beak
+            const beak = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.25, 4), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
+            beak.rotation.x = Math.PI / 2;
+            beak.position.set(0, 0.75, 0.55);
+            penGroup.add(beak);
+
+            // Face
+            addCuteFace(penHead, 0.16, 0.1, 0.48);
+
+            scene.add(penGroup);
+            animals.push({ group: penGroup, head: penHead, type: 'penguin', name: '펭구 (휴식 중인 펭귄)' });
+        }
+
+        // Animation Loop for Cute Distinct Character Motions
+        let clock = new THREE.Clock();
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            if (!renderer || !scene || !camera) return;
+
+            const time = clock.getElapsedTime();
+
+            // Smooth Camera Orbit Rotation
+            currentRotationY += (targetRotationY - currentRotationY) * 0.05;
+            currentRotationX += (targetRotationX - currentRotationX) * 0.05;
+
+            const radius = 11.5;
+            camera.position.x = radius * Math.sin(currentRotationY) * Math.cos(currentRotationX);
+            camera.position.z = radius * Math.cos(currentRotationY) * Math.cos(currentRotationX);
+            camera.position.y = radius * Math.sin(currentRotationX) + 1.8;
+            camera.lookAt(0, 1.0, 0);
+
+            // Distinct Motions for each animal
+            animals.forEach((anim) => {
+                if (anim.type === 'bear') {
+                    anim.head.rotation.x = Math.sin(time * 3.5) * 0.08 + 0.1;
+                } else if (anim.type === 'rabbit') {
+                    anim.head.rotation.y = Math.sin(time * 1.5) * 0.15;
+                    anim.head.position.y = 0.9 + Math.abs(Math.sin(time * 2)) * 0.03;
+                } else if (anim.type === 'cat') {
+                    anim.head.rotation.z = Math.sin(time * 2.0) * 0.1;
+                } else if (anim.type === 'penguin') {
+                    anim.group.rotation.y = Math.sin(time * 1.8) * 0.18;
+                    anim.group.position.y = 0.95 + Math.abs(Math.sin(time * 3.0)) * 0.05;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function resetCamera() {
+            targetRotationY = 0.25;
+            targetRotationX = 0.32;
+        }
+
+        // Button C interaction: Toggle Ambient Mood Light
+        let isNightMood = false;
+        function changeMoodLight() {
+            isNightMood = !isNightMood;
+            if (isNightMood) {
+                scene.background = new THREE.Color(0x0f172a);
+                scene.fog.color = new THREE.Color(0x0f172a);
+                mainLight.color.setHex(0xf43f5e);
+                mainLight.intensity = 3.2;
+            } else {
+                scene.background = new THREE.Color(0x271a10);
+                scene.fog.color = new THREE.Color(0x271a10);
+                mainLight.color.setHex(0xffedd5);
+                mainLight.intensity = 3.0;
+            }
+        }
+
+        // Button A interaction: Cheer message speech bubble
+        const cheerMessages = [
+            "곰곰이: 오늘 할 일 화이팅! 🐻✨",
+            "토토: 따뜻한 커피 한 잔과 몰입 ☕💖",
+            "야옹이: 천천히 쉬어가도 괜찮아 🐱🌿",
+            "펭구: 우리 다 같이 힘내자! 🐧🔥",
+            "일자 책상 친구: 집중할 수 있는 완벽한 분위기!"
+        ];
+        function cheerFriends() {
+            const bubble = document.getElementById('speechBubble');
+            const speechText = document.getElementById('speechText');
+            if(!bubble || !speechText) return;
+
+            const randomMsg = cheerMessages[Math.floor(Math.random() * cheerMessages.length)];
+            speechText.innerText = randomMsg;
+
+            bubble.classList.remove('hidden');
+            bubble.style.top = '40%';
+            bubble.style.left = '50%';
+
+            setTimeout(() => {
+                bubble.classList.add('hidden');
+            }, 3000);
+        }
+
+        // ----------------------------------------------------
+        // 2. AUDIO & AMBIENCE SYNTH
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let lofiOsc = null, lofiGain = null, isLofiPlaying = false;
+        let cafeNoiseNode = null, cafeGain = null;
+        let rainNoiseNode = null, rainGain = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function toggleLofi() {
+            const ctx = getAudioContext();
+            const btn = document.getElementById('lofiBtn');
+
+            if (isLofiPlaying) {
+                if (lofiGain) lofiGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
+                setTimeout(() => { if (lofiOsc) lofiOsc.stop(); isLofiPlaying = false; }, 500);
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-play"></i> 재생`;
+            } else {
+                lofiOsc = ctx.createOscillator();
+                lofiGain = ctx.createGain();
+                lofiOsc.type = 'sine';
+                lofiOsc.frequency.setValueAtTime(220, ctx.currentTime);
+                lofiGain.gain.setValueAtTime(0.01, ctx.currentTime);
+                lofiGain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 1.0);
+
+                lofiOsc.connect(lofiGain);
+                lofiGain.connect(ctx.destination);
+                lofiOsc.start();
+                isLofiPlaying = true;
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-pause"></i> 정지`;
+            }
+        }
+
+        function setCafeNoise(val) {
+            const ctx = getAudioContext();
+            const volume = val / 100 * 0.15;
+            if (!cafeNoiseNode) {
+                const bufferSize = ctx.sampleRate * 2;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                cafeNoiseNode = ctx.createBufferSource();
+                cafeNoiseNode.buffer = buffer;
+                cafeNoiseNode.loop = true;
+
+                cafeGain = ctx.createGain();
+                cafeGain.gain.value = volume;
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 800;
+
+                cafeNoiseNode.connect(filter);
+                filter.connect(cafeGain);
+                cafeGain.connect(ctx.destination);
+                cafeNoiseNode.start();
+            } else if (cafeGain) {
+                cafeGain.gain.setValueAtTime(volume, ctx.currentTime);
+            }
+        }
+
+        function setRainNoise(val) {
+            const ctx = getAudioContext();
+            const volume = val / 100 * 0.15;
+            if (!rainNoiseNode) {
+                const bufferSize = ctx.sampleRate * 2;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                rainNoiseNode = ctx.createBufferSource();
+                rainNoiseNode.buffer = buffer;
+                rainNoiseNode.loop = true;
+
+                rainGain = ctx.createGain();
+                rainGain.gain.value = volume;
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 600;
+
+                rainNoiseNode.connect(filter);
+                filter.connect(rainGain);
+                rainGain.connect(ctx.destination);
+                rainNoiseNode.start();
+            } else if (rainGain) {
+                rainGain.gain.setValueAtTime(volume, ctx.currentTime);
+            }
+        }
+
+        // ----------------------------------------------------
+        // 3. POMODORO TIMER LOGIC
+        // ----------------------------------------------------
+        let timerSeconds = 25 * 60;
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            const display = document.getElementById('timerDisplay');
+            if (display) display.innerText = `${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            const startBtn = document.getElementById('startBtn');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                if (startBtn) startBtn.innerHTML = `<i class="fa-solid fa-play"></i> 타이머 시작`;
+            } else {
+                isTimerRunning = true;
+                if (startBtn) startBtn.innerHTML = `<i class="fa-solid fa-pause"></i> 일시정지`;
+                timerInterval = setInterval(() => {
+                    if (timerSeconds > 0) {
+                        timerSeconds--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        if (startBtn) startBtn.innerHTML = `<i class="fa-solid fa-play"></i> 타이머 시작`;
+                        alert("🎉 뽀모도로 세션이 완료되었습니다! 잠시 쉬어가세요.");
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSeconds = 25 * 60;
+            updateTimerDisplay();
+            const startBtn = document.getElementById('startBtn');
+            if (startBtn) startBtn.innerHTML = `<i class="fa-solid fa-play"></i> 타이머 시작`;
+        }
+
+        function setTimerMode(mode) {
+            resetTimer();
+            const workBtn = document.getElementById('modeWork');
+            const shortBtn = document.getElementById('modeShort');
+            if (mode === 'work') {
+                timerSeconds = 25 * 60;
+                if(workBtn) workBtn.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-slate-950";
+                if(shortBtn) shortBtn.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300";
+            } else {
+                timerSeconds = 5 * 60;
+                if(workBtn) workBtn.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300";
+                if(shortBtn) shortBtn.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950";
+            }
+            updateTimerDisplay();
+        }
+
+        // ----------------------------------------------------
+        // 4. NAVIGATION & TAB SWITCHING
+        // ----------------------------------------------------
+        function switchTab(tab) {
+            const studyView = document.getElementById('studyView');
+            const todoView = document.getElementById('todoView');
+            const toolsView = document.getElementById('toolsView');
+
+            const tabStudy = document.getElementById('tabStudy');
+            const tabTodo = document.getElementById('tabTodo');
+            const tabTools = document.getElementById('tabTools');
+
+            studyView.classList.add('hidden');
+            todoView.classList.add('hidden');
+            toolsView.classList.add('hidden');
+
+            tabStudy.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5";
+            tabTodo.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5";
+            tabTools.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5";
+
+            if (tab === 'study') {
+                studyView.classList.remove('hidden');
+                tabStudy.className = "px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 transition flex items-center gap-1.5";
+                setTimeout(onWindowResize, 50);
+            } else if (tab === 'todoTab') {
+                todoView.classList.remove('hidden');
+                tabTodo.className = "px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30 transition flex items-center gap-1.5";
+            } else if (tab === 'tools') {
+                toolsView.classList.remove('hidden');
+                tabTools.className = "px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 transition flex items-center gap-1.5";
+            }
+        }
+
+        // ----------------------------------------------------
+        // 5. TODO LIST LOGIC
+        // ----------------------------------------------------
+        function saveTasks() {
+            localStorage.setItem('tamagotchi_tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function addFullTask(e) {
+            e.preventDefault();
+            const titleInput = document.getElementById('fullTaskTitle');
+            const catSelect = document.getElementById('fullTaskCategory');
+            const prioSelect = document.getElementById('fullTaskPriority');
+
+            if (!titleInput.value.trim()) return;
+
+            tasks.unshift({
+                id: Date.now(),
+                title: titleInput.value.trim(),
+                category: catSelect.value,
+                priority: prioSelect.value,
+                completed: false
+            });
+
+            titleInput.value = '';
+            saveTasks();
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            saveTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+        }
+
+        function filterTasks(f) {
+            taskFilter = f;
+            document.getElementById('btnFilterAll').className = f === 'all' ? "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white" : "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+            document.getElementById('btnFilterActive').className = f === 'active' ? "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white" : "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+            document.getElementById('btnFilterCompleted').className = f === 'completed' ? "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white" : "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+            renderTasks();
+        }
+
+        function clearCompletedTasks() {
+            tasks = tasks.filter(t => !t.completed);
+            saveTasks();
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('fullTaskList');
+            if (!list) return;
+
+            const filtered = tasks.filter(t => {
+                if (taskFilter === 'active') return !t.completed;
+                if (taskFilter === 'completed') return t.completed;
+                return true;
+            });
+
+            // Progress bar
+            const completedCount = tasks.filter(t => t.completed).length;
+            const pct = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
+            const fullProgressText = document.getElementById('fullProgressText');
+            const fullProgressBar = document.getElementById('fullProgressBar');
+            if(fullProgressText) fullProgressText.innerText = `${pct}% 달성`;
+            if(fullProgressBar) fullProgressBar.style.width = `${pct}%`;
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-slate-500 text-xs">
+                        <i class="fa-solid fa-clipboard-list text-3xl mb-2 text-slate-600"></i>
+                        <p>등록된 할 일이 없습니다. 새로운 할 일을 추가해보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filtered.map(t => `
+                <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/80 border ${t.completed ? 'border-slate-800 opacity-60' : 'border-slate-700/80'} hover:border-emerald-500/40 transition">
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleTask(${t.id})" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${t.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-600 hover:border-emerald-400'}">
+                            ${t.completed ? '<i class="fa-solid fa-check text-xs font-black"></i>' : ''}
+                        </button>
+                        <div>
+                            <span class="text-xs font-semibold ${t.completed ? 'line-through text-slate-400' : 'text-slate-100'}">${t.title}</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">${t.category}</span>
+                                <span class="text-[10px] ${t.priority === 'high' ? 'text-rose-400' : t.priority === 'medium' ? 'text-amber-400' : 'text-emerald-400'} font-bold">
+                                    ● ${t.priority === 'high' ? '높음' : t.priority === 'medium' ? '보통' : '낮음'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 text-xs px-2 py-1 transition">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // ----------------------------------------------------
+        // 6. TOOLS DIRECTORY RENDER
+        // ----------------------------------------------------
+        function renderTools() {
+            const grid = document.getElementById('toolsGrid');
+            if(!grid) return;
+            grid.innerHTML = webApps.map(app => `
+                <div class="bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 p-5 rounded-2xl transition flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white text-lg shadow-md">
+                                <i class="${app.icon}"></i>
+                            </div>
+                            <span class="text-[10px] font-semibold bg-slate-800 text-amber-300 px-2.5 py-1 rounded-full border border-slate-700">${app.category}</span>
+                        </div>
+                        <h4 class="text-base font-bold text-white group-hover:text-amber-300 transition">${app.name}</h4>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">${app.desc}</p>
+                    </div>
+                    <a href="${app.url}" target="_blank" rel="noopener noreferrer" class="mt-4 w-full py-2 bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-200 font-bold rounded-xl text-xs text-center transition flex items-center justify-center gap-1.5">
+                        <span>사이트 이동</span> <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        // Initialize 3D Engine on Window Load
+        window.addEventListener('load', () => {
+            init3D();
+            renderTasks();
+            renderTools();
+        });
+        
+        // Fallback initialization if already loaded
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(() => {
+                init3D();
+                renderTasks();
+                renderTools();
+            }, 100);
+        }
+    </script>
+</body>
+</html>
